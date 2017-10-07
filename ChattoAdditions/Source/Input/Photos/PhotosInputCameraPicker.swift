@@ -23,6 +23,7 @@
 */
 
 import UIKit
+import MobileCoreServices
 
 class PhotosInputCameraPicker: NSObject {
     weak var presentingController: UIViewController?
@@ -30,42 +31,96 @@ class PhotosInputCameraPicker: NSObject {
         self.presentingController = presentingController
     }
 
-    private var completionBlocks: (onImageTaken: ((UIImage?) -> Void)?, onCameraPickerDismissed: (() -> Void)?)?
+    private var completionBlocks: (onImageTaken: ((UIImage?, String?) -> Void)?, onVideoTaken: ((String?) -> Void)?, onCameraPickerDismissed: (() -> Void)?)?
 
-    func presentCameraPicker(onImageTaken: @escaping (UIImage?) -> Void, onCameraPickerDismissed: @escaping () -> Void) {
+    func presentCameraPicker(onImageTaken: @escaping (UIImage?, String?) -> Void, onVideoTaken: @escaping (String?) -> Void, onCameraPickerDismissed: @escaping () -> Void) {
         guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-            onImageTaken(nil)
+            onImageTaken(nil, nil)
             onCameraPickerDismissed()
             return
         }
 
         guard let presentingController = self.presentingController else {
-            onImageTaken(nil)
+            onImageTaken(nil, nil)
             onCameraPickerDismissed()
 
             return
         }
 
-        self.completionBlocks = (onImageTaken: onImageTaken, onCameraPickerDismissed: onCameraPickerDismissed)
+        self.completionBlocks = (onImageTaken: onImageTaken, onVideoTaken: onVideoTaken, onCameraPickerDismissed: onCameraPickerDismissed)
         let controller = UIImagePickerController()
         controller.delegate = self
         controller.sourceType = .camera
+        controller.mediaTypes = [kUTTypeImage as String, kUTTypeMovie as String]
         presentingController.present(controller, animated: true, completion:nil)
     }
 
-    fileprivate func finishPickingImage(_ image: UIImage?, fromPicker picker: UIImagePickerController) {
-        let (onImageTaken, onCameraPickerDismissed) = self.completionBlocks ?? (nil, nil)
+    fileprivate func finishPickingImage(_ image: UIImage?, url: String?, fromPicker picker: UIImagePickerController) {
+        let (onImageTaken, _, onCameraPickerDismissed) = self.completionBlocks ?? (nil, nil, nil)
         picker.dismiss(animated: true, completion: onCameraPickerDismissed)
-        onImageTaken?(image)
+        onImageTaken?(image, url)
+    }
+    
+    fileprivate func finishPickingVideo(_ video: String?, fromPicker picker: UIImagePickerController) {
+        let (_, onVideoTaken, onCameraPickerDismissed) = self.completionBlocks ?? (nil, nil, nil)
+        picker.dismiss(animated: true, completion: onCameraPickerDismissed)
+        onVideoTaken?(video)
     }
 }
 
 extension PhotosInputCameraPicker: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        guard let mediaType = info[UIImagePickerControllerMediaType] as! String? else { self.finishPickingImage(nil, url:nil, fromPicker: picker); return }
+        
+        if mediaType == (kUTTypeImage as String) {
+            var mediaUrl = info[UIImagePickerControllerMediaURL] as! URL?
+            
+            if let image = info[UIImagePickerControllerEditedImage] as! UIImage? {
+                
+                if mediaUrl == nil {
+                    // Guess we have to save it an use that url
+                    // TODO: Add error checking!
+                    let imageData = UIImageJPEGRepresentation(image, 0.7)!
+                    let docDir = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                    mediaUrl = docDir.appendingPathComponent(UUID().uuidString + ".jpg")
+                    try! imageData.write(to: mediaUrl!)
+                }
+                
+                self.finishPickingImage(image, url:mediaUrl!.absoluteString, fromPicker: picker)
+                return
+            }
+            if let image = info[UIImagePickerControllerOriginalImage] as! UIImage? {
+                
+                if mediaUrl == nil {
+                    // Guess we have to save it an use that url
+                    // TODO: Add error checking!
+                    let imageData = UIImageJPEGRepresentation(image, 0.7)!
+                    let docDir = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                    mediaUrl = docDir.appendingPathComponent(UUID().uuidString + ".jpg")
+                    try! imageData.write(to: mediaUrl!)
+                }
+                
+                self.finishPickingImage(image, url:mediaUrl!.absoluteString, fromPicker: picker)
+                return
+            }
+        } else if mediaType == (kUTTypeMovie as String) {
+            if let mediaUrl = info[UIImagePickerControllerMediaURL] as! URL? {
+                self.finishPickingVideo(mediaUrl.absoluteString, fromPicker: picker)
+                return
+            }
+        }
+        
+        // Not an image or video
+        self.finishPickingImage(nil, url:nil, fromPicker: picker)
+    }
+    
+    /*
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingImage image: UIImage, editingInfo: [String : AnyObject]?) {
         self.finishPickingImage(image, fromPicker: picker)
     }
+    */
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        self.finishPickingImage(nil, fromPicker: picker)
+        self.finishPickingImage(nil, url:nil, fromPicker: picker)
     }
 }

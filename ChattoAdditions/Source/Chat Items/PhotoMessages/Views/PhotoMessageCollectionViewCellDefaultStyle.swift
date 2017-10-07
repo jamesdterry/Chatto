@@ -150,7 +150,10 @@ open class PhotoMessageCollectionViewCellDefaultStyle: PhotoMessageCollectionVie
     }
 
     open func bubbleSize(viewModel: PhotoMessageViewModelProtocol) -> CGSize {
-        let aspectRatio = viewModel.imageSize.height > 0 ? viewModel.imageSize.width / viewModel.imageSize.height : 0
+        
+        guard let imageSize = viewModel.imageSize else { return self.sizes.photoSizeSquare }
+        
+        let aspectRatio = imageSize.height > 0 ? imageSize.width / imageSize.height : 0
 
         if aspectRatio == 0 || self.sizes.aspectRatioIntervalForSquaredSize.contains(aspectRatio) {
             return self.sizes.photoSizeSquare

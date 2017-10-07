@@ -32,7 +32,7 @@ protocol PhotosInputDataProviderProtocol : class {
     weak var delegate: PhotosInputDataProviderDelegate? { get set }
     var count: Int { get }
     func requestPreviewImageAtIndex(_ index: Int, targetSize: CGSize, completion: @escaping (UIImage) -> Void) -> Int32
-    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage) -> Void)
+    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage, String) -> Void)
     func cancelPreviewImageRequest(_ requestID: Int32)
 }
 
@@ -53,7 +53,7 @@ class PhotosInputPlaceholderDataProvider: PhotosInputDataProviderProtocol {
         return 0
     }
 
-    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage) -> Void) {
+    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage, String) -> Void) {
     }
 
     func cancelPreviewImageRequest(_ requestID: Int32) {
@@ -106,14 +106,18 @@ class PhotosInputDataProvider: NSObject, PhotosInputDataProviderProtocol, PHPhot
         self.imageManager.cancelImageRequest(requestID)
     }
 
-    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage) -> Void) {
+    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage, String) -> Void) {
         assert(index >= 0 && index < self.fetchResult.count, "Index out of bounds")
         let asset = self.fetchResult[index]
-        self.imageManager.requestImageData(for: asset, options: .none) { (data, _, _, _) -> Void in
-            if let data = data, let image = UIImage(data: data) {
-                completion(image)
+        
+        getAssetUrl(mPhasset: asset) { (url) in
+            self.imageManager.requestImageData(for: asset, options: .none) { (data, _, _, _) -> Void in
+                if let data = data, let image = UIImage(data: data) {
+                    completion(image, (url?.absoluteString)!)
+                }
             }
         }
+        
     }
 
     // MARK: PHPhotoLibraryChangeObserver
@@ -130,6 +134,33 @@ class PhotosInputDataProvider: NSObject, PhotosInputDataProviderProtocol, PHPhot
                 sSelf.delegate?.handlePhotosInpudDataProviderUpdate(sSelf, updateBlock: updateBlock)
             }
         }
+    }
+    
+    
+    func getAssetUrl(mPhasset: PHAsset, completionHandler: @escaping ((_ responseURL : NSURL?) -> Void)){
+        
+        if mPhasset.mediaType == .image {
+            let options: PHContentEditingInputRequestOptions = PHContentEditingInputRequestOptions()
+            options.canHandleAdjustmentData = {(adjustmeta: PHAdjustmentData) -> Bool in
+                return true
+            }
+            mPhasset.requestContentEditingInput(with: options, completionHandler: {(contentEditingInput: PHContentEditingInput?, info: [AnyHashable : Any]) -> Void in
+                completionHandler(contentEditingInput!.fullSizeImageURL! as NSURL)
+            })
+        } else if mPhasset.mediaType == .video {
+            let options: PHVideoRequestOptions = PHVideoRequestOptions()
+            options.version = .original
+            PHImageManager.default().requestAVAsset(forVideo: mPhasset, options: options, resultHandler: {(asset: AVAsset?, audioMix: AVAudioMix?, info: [AnyHashable : Any]?) -> Void in
+                
+                if let urlAsset = asset as? AVURLAsset {
+                    let localVideoUrl : NSURL = urlAsset.url as NSURL
+                    completionHandler(localVideoUrl)
+                } else {
+                    completionHandler(nil)
+                }
+            })
+        }
+        
     }
 }
 
@@ -156,7 +187,7 @@ class PhotosInputWithPlaceholdersDataProvider: PhotosInputDataProviderProtocol, 
         }
     }
 
-    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage) -> Void) {
+    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage, String) -> Void) {
         if index < self.photosDataProvider.count {
             return self.photosDataProvider.requestFullImageAtIndex(index, completion: completion)
         } else {

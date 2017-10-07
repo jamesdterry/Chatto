@@ -41,7 +41,7 @@ public protocol PhotoMessageViewModelProtocol: DecoratedMessageViewModelProtocol
     var transferProgress: Observable<Double> { get  set } // in [0,1]
     var transferStatus: Observable<TransferStatus> { get set }
     var image: Observable<UIImage?> { get set }
-    var imageSize: CGSize { get }
+    var imageSize: CGSize? { get }
 }
 
 open class PhotoMessageViewModel<PhotoMessageModelT: PhotoMessageModelProtocol>: PhotoMessageViewModelProtocol {
@@ -53,7 +53,7 @@ open class PhotoMessageViewModel<PhotoMessageModelT: PhotoMessageModelProtocol>:
     public var transferProgress: Observable<Double> = Observable(0)
     public var transferDirection: Observable<TransferDirection> = Observable(.download)
     public var image: Observable<UIImage?>
-    open var imageSize: CGSize {
+    open var imageSize: CGSize? {
         return self.photoMessage.imageSize
     }
     public let messageViewModel: MessageViewModelProtocol

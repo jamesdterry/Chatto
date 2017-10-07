@@ -39,7 +39,8 @@ protocol PhotosInputViewProtocol {
 }
 
 protocol PhotosInputViewDelegate: class {
-    func inputView(_ inputView: PhotosInputViewProtocol, didSelectImage image: UIImage)
+    func inputView(_ inputView: PhotosInputViewProtocol, didSelectImage image: UIImage, url: String)
+    func inputView(_ inputView: PhotosInputViewProtocol, didSelectUrl url: String)
     func inputViewDidRequestCameraPermission(_ inputView: PhotosInputViewProtocol)
     func inputViewDidRequestPhotoLibraryPermission(_ inputView: PhotosInputViewProtocol)
 }
@@ -214,22 +215,28 @@ extension PhotosInputView: UICollectionViewDelegateFlowLayout {
                 self.delegate?.inputViewDidRequestCameraPermission(self)
             } else {
                 self.liveCameraPresenter.cameraPickerWillAppear()
-                self.cameraPicker.presentCameraPicker(onImageTaken: { [weak self] (image) in
-                    guard let sSelf = self else { return }
+                self.cameraPicker.presentCameraPicker(onImageTaken: { [weak self] (image, urlString) in
+                        guard let sSelf = self else { return }
 
-                    if let image = image {
-                        sSelf.delegate?.inputView(sSelf, didSelectImage: image)
-                    }
-                }, onCameraPickerDismissed: { [weak self] in
-                    self?.liveCameraPresenter.cameraPickerDidDisappear()
+                        if let image = image {
+                            sSelf.delegate?.inputView(sSelf, didSelectImage: image, url:urlString!)
+                        }
+                    }, onVideoTaken: { [weak self] (urlString) in
+                        guard let sSelf = self else { return }
+                        
+                        if let urlString = urlString {
+                            sSelf.delegate?.inputView(sSelf, didSelectUrl: urlString)
+                        }
+                    }, onCameraPickerDismissed: { [weak self] in
+                        self?.liveCameraPresenter.cameraPickerDidDisappear()
                 })
             }
         } else {
             if self.photoLibraryAuthorizationStatus != .authorized {
                 self.delegate?.inputViewDidRequestPhotoLibraryPermission(self)
             } else {
-                self.dataProvider.requestFullImageAtIndex(indexPath.item - 1) { image in
-                    self.delegate?.inputView(self, didSelectImage: image)
+                self.dataProvider.requestFullImageAtIndex(indexPath.item - 1) { image, urlString in
+                    self.delegate?.inputView(self, didSelectImage: image, url:urlString)
                 }
             }
         }
