@@ -229,7 +229,8 @@ extension BaseChatViewController: ChatDataSourceDelegateProtocol {
     private func updateModels(newItems: [ChatItemProtocol], oldItems: ChatItemCompanionCollection, updateType: UpdateType, completion: @escaping () -> Void) {
         let collectionViewWidth = self.collectionView.bounds.width
         let updateType = self.isFirstLayout ? .firstLoad : updateType
-        let performInBackground = updateType != .firstLoad
+        // Never performInBackground because it uses UIKit and cases numerous issues :-(
+        let performInBackground = false //JDT2DO updateType != .firstLoad
 
         self.autoLoadingEnabled = false
         let perfomBatchUpdates: (_ changes: CollectionChanges, _ updateModelClosure: @escaping () -> Void) -> Void  = { [weak self] (changes, updateModelClosure) in
