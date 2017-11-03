@@ -55,7 +55,10 @@ open class ChatInputBar: ReusableXibView {
     @IBOutlet var constraintsForVisibleSendButton: [NSLayoutConstraint]!
     @IBOutlet var constraintsForHiddenSendButton: [NSLayoutConstraint]!
     @IBOutlet var tabBarContainerHeightConstraint: NSLayoutConstraint!
+    
+    @IBOutlet weak var promptHeightConstraint: NSLayoutConstraint!
 
+    @IBOutlet weak var promptLabel: UILabel!
     class open func loadNib() -> ChatInputBar {
         let view = Bundle(for: self).loadNibNamed(self.nibName(), owner: nil, options: nil)!.first as! ChatInputBar
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -74,6 +77,7 @@ open class ChatInputBar: ReusableXibView {
         self.textView.delegate = self
         self.scrollView.scrollsToTop = false
         self.sendButton.isEnabled = false
+        self.promptHeightConstraint.constant = 0
     }
 
     open override func updateConstraints() {
@@ -170,6 +174,21 @@ open class ChatInputBar: ReusableXibView {
     public func setTextViewPlaceholderAccessibilityIdentifer(_ accessibilityIdentifer: String) {
         self.textView.setTextPlaceholderAccessibilityIdentifier(accessibilityIdentifer)
     }
+
+    public func setPrompt(_ prompt:String, animate:Bool) {
+        self.promptLabel.text = prompt
+        if (animate) {
+            let options: UIViewAnimationOptions = [.curveEaseInOut, .allowUserInteraction]
+            UIView.animate(withDuration: 0.25, delay: 0, options: options, animations: {
+                self.promptHeightConstraint.constant = prompt.count == 0 ? 0 : 44;
+                self.setNeedsLayout()
+                self.layoutIfNeeded()
+            })
+        } else {
+            promptHeightConstraint.constant = prompt.count == 0 ? 0 : 44;
+        }
+    }
+
 }
 
 // MARK: - ChatInputItemViewDelegate
