@@ -59,6 +59,13 @@ open class ChatInputBar: ReusableXibView {
     @IBOutlet weak var promptHeightConstraint: NSLayoutConstraint!
 
     @IBOutlet weak var promptLabel: UILabel!
+    
+    @IBOutlet weak var promptChooseButton: UIButton!
+    
+    private var inViewController:UIViewController!
+    private var emotions:[String]!
+    private var chosenEmotion = ""
+    
     class open func loadNib() -> ChatInputBar {
         let view = Bundle(for: self).loadNibNamed(self.nibName(), owner: nil, options: nil)!.first as! ChatInputBar
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -175,20 +182,43 @@ open class ChatInputBar: ReusableXibView {
         self.textView.setTextPlaceholderAccessibilityIdentifier(accessibilityIdentifer)
     }
 
-    public func setPrompt(_ prompt:String, animate:Bool) {
+    public func setPrompt(_ prompt:String, emotions:[String], inViewController:UIViewController, animate:Bool) {
+        if prompt == self.promptLabel.text { return }
+        
+        self.emotions = emotions
+        self.inViewController = inViewController
+        
         self.promptLabel.text = prompt
         if (animate) {
             let options: UIViewAnimationOptions = [.curveEaseInOut, .allowUserInteraction]
             UIView.animate(withDuration: 0.25, delay: 0, options: options, animations: {
+                self.promptChooseButton.isHidden = (emotions.count == 0)
                 self.promptHeightConstraint.constant = prompt.count == 0 ? 0 : 44;
                 self.setNeedsLayout()
                 self.layoutIfNeeded()
             })
         } else {
+            self.promptChooseButton.isHidden = (emotions.count == 0)
             promptHeightConstraint.constant = prompt.count == 0 ? 0 : 44;
         }
     }
 
+    @IBAction func tapChoosePrompt(_ sender: Any) {
+        print("Choose Emotion")
+        
+        let alert = UIAlertController(title: "", message: "Please Choose emotion to act out", preferredStyle: .actionSheet)
+
+        for e in emotions {
+            alert.addAction(UIAlertAction(title: e, style: .default, handler: { [unowned self] (action) in
+                self.chosenEmotion = e
+                self.promptChooseButton.isHidden = true
+            }))
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        self.inViewController.present(alert, animated: true, completion: nil)
+    }
 }
 
 // MARK: - ChatInputItemViewDelegate

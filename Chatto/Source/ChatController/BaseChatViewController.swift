@@ -85,7 +85,7 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
         }
 
     }
-
+    
     override open func viewDidLoad() {
         super.viewDidLoad()
         self.addCollectionView()

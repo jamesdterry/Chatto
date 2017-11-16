@@ -27,11 +27,24 @@
                             <nil key="textColor"/>
                             <nil key="highlightedColor"/>
                         </label>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tLI-R4-M6t">
+                            <rect key="frame" x="452" y="7" width="140" height="30"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="140" id="XQw-g2-TlJ"/>
+                                <constraint firstAttribute="height" constant="30" id="wLb-A0-NFS"/>
+                            </constraints>
+                            <state key="normal" title="Choose emotion"/>
+                            <connections>
+                                <action selector="tapChoosePrompt:" destination="iN0-l3-epB" eventType="touchUpInside" id="lgg-FR-Pzi"/>
+                            </connections>
+                        </button>
                     </subviews>
                     <color key="backgroundColor" red="0.97254901959999995" green="0.86274509799999999" blue="0.41960784309999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="44" id="43i-ym-JZ9"/>
                         <constraint firstItem="dkN-s0-PWo" firstAttribute="leading" secondItem="41c-eQ-dyI" secondAttribute="leading" constant="8" id="79p-XP-hYh"/>
+                        <constraint firstItem="tLI-R4-M6t" firstAttribute="centerY" secondItem="41c-eQ-dyI" secondAttribute="centerY" id="IwW-5m-Wbf"/>
+                        <constraint firstAttribute="trailing" secondItem="tLI-R4-M6t" secondAttribute="trailing" constant="8" id="jAP-NF-YGs"/>
                         <constraint firstItem="dkN-s0-PWo" firstAttribute="centerY" secondItem="41c-eQ-dyI" secondAttribute="centerY" id="rlT-0a-NQy"/>
                         <constraint firstAttribute="trailing" secondItem="dkN-s0-PWo" secondAttribute="trailing" constant="8" id="t0u-hQ-xTR"/>
                     </constraints>
@@ -110,6 +123,7 @@
                 </mask>
             </variation>
             <connections>
+                <outlet property="promptChooseButton" destination="tLI-R4-M6t" id="E6T-ff-2cx"/>
                 <outlet property="promptHeightConstraint" destination="43i-ym-JZ9" id="thm-lH-YD2"/>
                 <outlet property="promptLabel" destination="dkN-s0-PWo" id="zHi-O9-HLV"/>
                 <outlet property="scrollView" destination="WNX-pj-5AB" id="Qqy-Ny-mng"/>
