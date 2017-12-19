@@ -76,6 +76,10 @@ open class ChatInputBar: ReusableXibView {
     override class func nibName() -> String {
         return "ChatInputBar"
     }
+    
+    public func getChosenEmotion() -> String {
+        return chosenEmotion
+    }
 
     open override func awakeFromNib() {
         super.awakeFromNib()
