@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13527"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -18,8 +18,8 @@
                 <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="41c-eQ-dyI" userLabel="PView">
                     <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
                     <subviews>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dkN-s0-PWo" userLabel="PromptLabel">
-                            <rect key="frame" x="8" y="11" width="584" height="21"/>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dkN-s0-PWo" userLabel="PromptLabel">
+                            <rect key="frame" x="8" y="11" width="452" height="21"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="21" id="bSr-DD-mUd"/>
                             </constraints>
@@ -44,9 +44,9 @@
                         <constraint firstAttribute="height" constant="44" id="43i-ym-JZ9"/>
                         <constraint firstItem="dkN-s0-PWo" firstAttribute="leading" secondItem="41c-eQ-dyI" secondAttribute="leading" constant="8" id="79p-XP-hYh"/>
                         <constraint firstItem="tLI-R4-M6t" firstAttribute="centerY" secondItem="41c-eQ-dyI" secondAttribute="centerY" id="IwW-5m-Wbf"/>
+                        <constraint firstItem="dkN-s0-PWo" firstAttribute="trailing" secondItem="tLI-R4-M6t" secondAttribute="leading" constant="8" id="dNw-p0-dlz"/>
                         <constraint firstAttribute="trailing" secondItem="tLI-R4-M6t" secondAttribute="trailing" constant="8" id="jAP-NF-YGs"/>
                         <constraint firstItem="dkN-s0-PWo" firstAttribute="centerY" secondItem="41c-eQ-dyI" secondAttribute="centerY" id="rlT-0a-NQy"/>
-                        <constraint firstAttribute="trailing" secondItem="dkN-s0-PWo" secondAttribute="trailing" constant="8" id="t0u-hQ-xTR"/>
                     </constraints>
                 </view>
                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" verticalHuggingPriority="249" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="fsh-hH-hKG" userLabel="TextView" customClass="ExpandableTextView" customModule="ChattoAdditions" customModuleProvider="target">

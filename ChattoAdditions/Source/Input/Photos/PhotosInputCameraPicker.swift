@@ -52,6 +52,7 @@ class PhotosInputCameraPicker: NSObject {
         controller.delegate = self
         controller.sourceType = .camera
         controller.mediaTypes = [kUTTypeImage as String, kUTTypeMovie as String]
+        controller.videoQuality = .typeHigh
         presentingController.present(controller, animated: true, completion:nil)
     }
 
