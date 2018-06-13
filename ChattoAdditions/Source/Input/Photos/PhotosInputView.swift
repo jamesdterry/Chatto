@@ -236,7 +236,11 @@ extension PhotosInputView: UICollectionViewDelegateFlowLayout {
                 self.delegate?.inputViewDidRequestPhotoLibraryPermission(self)
             } else {
                 self.dataProvider.requestFullImageAtIndex(indexPath.item - 1) { image, urlString in
-                    self.delegate?.inputView(self, didSelectImage: image, url:urlString)
+                    if let image = image {
+                        self.delegate?.inputView(self, didSelectImage: image, url:urlString)
+                    } else {
+                        self.delegate?.inputView(self, didSelectUrl: urlString)
+                    }
                 }
             }
         }

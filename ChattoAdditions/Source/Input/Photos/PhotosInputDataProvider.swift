@@ -32,7 +32,7 @@ protocol PhotosInputDataProviderProtocol : class {
     weak var delegate: PhotosInputDataProviderDelegate? { get set }
     var count: Int { get }
     func requestPreviewImageAtIndex(_ index: Int, targetSize: CGSize, completion: @escaping (UIImage) -> Void) -> Int32
-    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage, String) -> Void)
+    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage?, String) -> Void)
     func cancelPreviewImageRequest(_ requestID: Int32)
 }
 
@@ -53,7 +53,7 @@ class PhotosInputPlaceholderDataProvider: PhotosInputDataProviderProtocol {
         return 0
     }
 
-    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage, String) -> Void) {
+    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage?, String) -> Void) {
     }
 
     func cancelPreviewImageRequest(_ requestID: Int32) {
@@ -74,7 +74,13 @@ class PhotosInputDataProvider: NSObject, PhotosInputDataProviderProtocol, PHPhot
         }
 
         if let userLibraryCollection = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil).firstObject {
-            self.fetchResult = PHAsset.fetchAssets(in: userLibraryCollection, options: fetchOptions(NSPredicate(format: "mediaType = \(PHAssetMediaType.image.rawValue)")))
+            
+            let predicateImage = NSPredicate(format: "mediaType = \(PHAssetMediaType.image.rawValue)")
+            let predicateVideo = NSPredicate(format: "mediaType = \(PHAssetMediaType.video.rawValue)")
+            let predicateOr = NSCompoundPredicate.init(type: .or, subpredicates: [predicateImage,predicateVideo])
+            
+            
+            self.fetchResult = PHAsset.fetchAssets(in: userLibraryCollection, options: fetchOptions(predicateOr))
         } else {
             self.fetchResult = PHAsset.fetchAssets(with: .image, options: fetchOptions(nil))
         }
@@ -106,15 +112,19 @@ class PhotosInputDataProvider: NSObject, PhotosInputDataProviderProtocol, PHPhot
         self.imageManager.cancelImageRequest(requestID)
     }
 
-    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage, String) -> Void) {
+    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage?, String) -> Void) {
         assert(index >= 0 && index < self.fetchResult.count, "Index out of bounds")
         let asset = self.fetchResult[index]
         
         getAssetUrl(mPhasset: asset) { (url) in
-            self.imageManager.requestImageData(for: asset, options: .none) { (data, _, _, _) -> Void in
-                if let data = data, let image = UIImage(data: data) {
-                    completion(image, (url?.absoluteString)!)
+            if asset.mediaType == .image {
+                self.imageManager.requestImageData(for: asset, options: .none) { (data, _, _, _) -> Void in
+                    if let data = data, let image = UIImage(data: data) {
+                        completion(image, (url?.absoluteString)!)
+                    }
                 }
+            } else if asset.mediaType == .video {
+                completion(nil, (url?.absoluteString)!)
             }
         }
         
@@ -187,7 +197,7 @@ class PhotosInputWithPlaceholdersDataProvider: PhotosInputDataProviderProtocol, 
         }
     }
 
-    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage, String) -> Void) {
+    func requestFullImageAtIndex(_ index: Int, completion: @escaping (UIImage?, String) -> Void) {
         if index < self.photosDataProvider.count {
             return self.photosDataProvider.requestFullImageAtIndex(index, completion: completion)
         } else {
