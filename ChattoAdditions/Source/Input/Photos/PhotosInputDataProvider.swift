@@ -120,11 +120,53 @@ class PhotosInputDataProvider: NSObject, PhotosInputDataProviderProtocol, PHPhot
             if asset.mediaType == .image {
                 self.imageManager.requestImageData(for: asset, options: .none) { (data, _, _, _) -> Void in
                     if let data = data, let image = UIImage(data: data) {
-                        completion(image, (url?.absoluteString)!)
+                        // Save image as JPEG in temp location
+                        if let jpegdata = UIImageJPEGRepresentation(image, 0.8) {
+                            let fileName = String(format: "%@_%@", ProcessInfo.processInfo.globallyUniqueString, ".jpg")
+                            let fileURL = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+                            try? jpegdata.write(to: fileURL!)
+                            completion(image, fileURL!.absoluteString)
+                        }
                     }
                 }
             } else if asset.mediaType == .video {
-                completion(nil, (url?.absoluteString)!)
+                self.imageManager.requestExportSession(forVideo: asset, options: nil, exportPreset: AVAssetExportPresetPassthrough, resultHandler: { (exportSession, dict) in
+                    if let exportSession = exportSession {
+                        
+                        let fileName = String(format: "%@_%@", ProcessInfo.processInfo.globallyUniqueString, ".mp4")
+                        let mediaUrl = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+
+                        exportSession.outputURL = mediaUrl
+                        exportSession.outputFileType = AVFileType.mp4
+                        exportSession.shouldOptimizeForNetworkUse = false
+                        
+                        /*
+                        let start = CMTimeMakeWithSeconds(0.0, 0)
+                        let range = CMTimeRange(start: start, duration: avAsset.duration)
+                        exportSession.timeRange = range
+                        */
+                        
+                        exportSession.exportAsynchronously{() -> Void in
+                            switch exportSession.status{
+                            case .failed:
+                                print("\(exportSession.error!)")
+                            case .cancelled:
+                                print("Export cancelled")
+                            case .completed:
+                                print(exportSession.outputURL ?? "")
+                                if let outputURL = exportSession.outputURL {
+                                    completion(nil, outputURL.absoluteString)
+                                }
+                            default:
+                                break
+                            }
+                            
+                        }
+                    }
+                    
+                })
+                
+                
             }
         }
         
